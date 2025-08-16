@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz App - Neon Glow</title>
+<script type="text/javascript" nonce="8c58abe1ce27495985452da3d42" src="//local.adguard.org?ts=1755326898367&amp;type=content-script&amp;dmn=api.netlify.com&amp;url=https%3A%2F%2Fapi.netlify.com%2Fapi%2Fv1%2Fdeploys%2F68a085328a6e193c5799cb8d%2Ffiles%2Findex.html&amp;app=com.android.chrome&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script>
+<script type="text/javascript" nonce="8c58abe1ce27495985452da3d42" src="//local.adguard.org?ts=1755326898367&amp;name=AdGuard%20Extra&amp;type=user-script"></script><link href="https://fonts.googleapis.com/css?family=Orbitron:700&display=swap" rel="stylesheet">
+<style>
+/* Neon Glow Theme */
+body {
+    background: radial-gradient(circle at 80% 20%, #291c6e 0%, #00167d 65%, #060620 100%);
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Orbitron', 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+.quiz-container {
+    max-width: 500px;
+    width: 100%;
+    background: rgba(20,24,52,0.9);
+    border-radius: 24px;
+    box-shadow: 0 0 35px 8px #2c08ff55, 0 8px 50px #4300b540;
+    overflow: hidden;
+    animation: neonPop 1s cubic-bezier(.44,.56,.57,1.4);
+}
+.title {
+    background: linear-gradient(90deg, #9900ff 35%, #2debb0 100%);
+    color: #fff;
+    text-shadow: 0 0 18px #53ffed, 0 0 8px #ab29ff;
+    padding: 20px;
+    font-size: 2em;
+    text-align: center;
+    font-weight: bold;
+    animation: glowFade 2s infinite alternate;
+}
+#timer {
+    font-size: 1.1em;
+    text-align: right;
+    color: #32ffd5;
+    margin: 10px 20px;
+    font-weight: bold;
+}
+.card-question {
+    background: linear-gradient(120deg,#181637 85%,#352879 100%);
+    border-left: 7px solid #2debb0;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 14px;
+}
+.card-question .q-num {
+    color: #2debb0;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+.card-question .q-txt {
+    color: #fff;
+    font-size: 1.4em;
+    margin-bottom: 18px;
+}
+.options {
+    display: grid;
+    gap: 14px;
+}
+.option-btn {
+    padding: 20px 16px;
+    font-size: 1.4em;
+    font-weight: bold;
+    background: linear-gradient(90deg,#11095c,#2d3cff);
+    color: #fff;
+    border: 2px solid #db14e6;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: all .25s;
+}
+.option-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    background: linear-gradient(90deg,#2debb0,#9900ff);
+    color: #fff200;
+}
+.option-btn.correct {
+    background: linear-gradient(90deg,#fff700,#ffcc00);
+    color: #222;
+}
+.option-btn.wrong {
+    background: linear-gradient(90deg,#ff3b30,#c50000);
+    color: #fff;
+}
+.option-btn:disabled { opacity: 0.7; }
+.progress-bar {
+    width: 85%;
+    height: 10px;
+    background: #16125e;
+    border-radius: 10px;
+    margin: 20px auto 0;
+}
+.progress {
+    background: linear-gradient(90deg, #3cfee6, #f187fb);
+    height: 100%;
+    transition: width 0.5s;
+}
+.question-counter {
+    text-align: center;
+    color: #2debb0;
+    font-weight: bold;
+    margin: 10px;
+}
+#result {
+    display: none;
+    text-align: center;
+    color: #fff;
+    padding: 20px;
+}
+.fade-slide-out { animation: fadeSlideOut 0.6s forwards; }
+@keyframes fadeSlideOut { to { opacity: 0; transform: translateY(-20px);}}
+.fade-slide-in { animation: fadeSlideIn 0.6s forwards; }
+@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);}}
+</style>
+</head>
+<body>
+<div class="quiz-container">
+    <h1 class="title">HINDI VERBS (శ్యాం ప్రసాద్)</h1>
+    <div id="timer"></div>
+    <div id="quiz"></div>
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+    <div class="question-counter" id="question-counter"></div>
+    <div id="result"></div>
+</div>
+
+<script>
+/* ===== CONFIGURATION ===== */
+const CHOICE_COUNT = 4;           // Number of options per question
+const QUESTIONS_PER_GAME = 15;    // Number of questions per game
+const totalTime = 60;            // Quiz time in seconds
+/* ========================= */
+
+/* ===== QUESTIONS ARRAY ===== */
+const questions = [
+    
+  
+  
+
+    
+ {
+    "question": "Eat",
+    "options": ["खाना", "पीना", "सोना", "जाना"],
+    "answer": "खाना"
+  },
+  {
+    "question": "Drink",
+    "options": ["पीना", "बोलना", "पढ़ना", "देखना"],
+    "answer": "पीना"
+  },
+  {
+    "question": "Sleep",
+    "options": ["सोना", "चलना", "दौड़ना", "बैठना"],
+    "answer": "सोना"
+  },
+  {
+    "question": "Go",
+    "options": ["जाना", "आना", "बोलना", "सुनना"],
+    "answer": "जाना"
+  },
+  {
+    "question": "Come",
+    "options": ["आना", "खाना", "लिखना", "देखना"],
+    "answer": "आना"
+  },
+  {
+    "question": "Speak",
+    "options": ["बोलना", "पढ़ना", "सुनना", "चलना"],
+    "answer": "बोलना"
+  },
+  {
+    "question": "Read",
+    "options": ["पढ़ना", "लिखना", "देखना", "सुनना"],
+    "answer": "पढ़ना"
+  },
+  {
+    "question": "Write",
+    "options": ["लिखना", "खाना", "पीना", "जाना"],
+    "answer": "लिखना"
+  },
+  {
+    "question": "See",
+    "options": ["देखना", "सुनना", "चलना", "दौड़ना"],
+    "answer": "देखना"
+  },
+  {
+    "question": "Hear",
+    "options": ["सुनना", "बोलना", "पढ़ना", "लिखना"],
+    "answer": "सुनना"
+  },
+  {
+    "question": "Walk",
+    "options": ["चलना", "दौड़ना", "बैठना", "सोना"],
+    "answer": "चलना"
+  },
+  {
+    "question": "Run",
+    "options": ["दौड़ना", "चलना", "बैठना", "जाना"],
+    "answer": "दौड़ना"
+  },
+  {
+    "question": "Sit",
+    "options": ["बैठना", "सोना", "खाना", "पीना"],
+    "answer": "बैठना"
+  },
+  {
+    "question": "Save",
+    "options": ["बचाना", "देना", "लेना", "खोलना"],
+    "answer": "बचाना"
+  },
+  {
+    "question": "Learn",
+    "options": ["सीखना", "खेलना", "मदद करना", "देना"],
+    "answer": "सीखना"
+  },
+  {
+    "question": "Play",
+    "options": ["खेलना", "सीखना", "बचाना", "लेना"],
+    "answer": "खेलना"
+  },
+  {
+    "question": "Help",
+    "options": ["मदद करना", "खोलना", "बंद करना", "खरीदना"],
+    "answer": "मदद करना"
+  },
+  {
+    "question": "Give",
+    "options": ["देना", "लेना", "खाना", "पीना"],
+    "answer": "देना"
+  },
+  {
+    "question": "Take",
+    "options": ["लेना", "देना", "सोना", "जाना"],
+    "answer": "लेना"
+  },
+  {
+    "question": "Open",
+    "options": ["खोलना", "बंद करना", "खरीदना", "बेचना"],
+    "answer": "खोलना"
+  },
+  {
+    "question": "Close",
+    "options": ["बंद करना", "खोलना", "साफ करना", "धोना"],
+    "answer": "बंद करना"
+  },
+  {
+    "question": "Buy",
+    "options": ["खरीदना", "बेचना", "साफ करना", "मदद करना"],
+    "answer": "खरीदना"
+  },
+  {
+    "question": "Sell",
+    "options": ["बेचना", "खरीदना", "खोलना", "बंद करना"],
+    "answer": "बेचना"
+  },
+  {
+    "question": "Clean",
+    "options": ["साफ करना", "धोना", "गाना", "रोना"],
+    "answer": "साफ करना"
+  },
+  {
+    "question": "Wash",
+    "options": ["धोना", "साफ करना", "खेलना", "सीखना"],
+    "answer": "धोना"
+  },
+  {
+    "question": "Sing",
+    "options": ["गाना", "रोना", "हँसना", "मुस्कुराना"],
+    "answer": "गाना"
+  },
+  {
+    "question": "Cry",
+    "options": ["रोना", "गाना", "हँसना", "सोचना"],
+    "answer": "रोना"
+  },
+  {
+    "question": "Laugh",
+    "options": ["हँसना", "मुस्कुराना", "रोना", "गाना"],
+    "answer": "हँसना"
+  },
+  {
+    "question": "Smile",
+    "options": ["मुस्कुराना", "हँसना", "रोना", "सोचना"],
+    "answer": "मुस्कुराना"
+  },
+  {
+    "question": "Think",
+    "options": ["सोचना", "भूलना", "शुरू करना", "रोकना"],
+    "answer": "सोचना"
+  },
+  {
+    "question": "Forget",
+    "options": ["भूलना", "सोचना", "पकड़ना", "फेंकना"],
+    "answer": "भूलना"
+  },
+  {
+    "question": "Start",
+    "options": ["शुरू करना", "रोकना", "छिपाना", "ढूंढना"],
+    "answer": "शुरू करना"
+  },
+  {
+    "question": "Stop",
+    "options": ["रोकना", "शुरू करना", "पकड़ना", "फेंकना"],
+    "answer": "रोकना"
+  },
+  {
+    "question": "Catch",
+    "options": ["पकड़ना", "फेंकना", "छिपाना", "ढूंढना"],
+    "answer": "पकड़ना"
+  },
+  {
+    "question": "Throw",
+    "options": ["फेंकना", "पकड़ना", "उपयोग करना", "जीतना"],
+    "answer": "फेंकना"
+  },
+  {
+    "question": "Hide",
+    "options": ["छिपाना", "ढूंढना", "रोकना", "शुरू करना"],
+    "answer": "छिपाना"
+  },
+  {
+    "question": "Find",
+    "options": ["ढूंढना", "छिपाना", "पकड़ना", "फेंकना"],
+    "answer": "ढूंढना"
+  },
+  {
+    "question": "Use",
+    "options": ["उपयोग करना", "जीतना", "हारना", "खेलना"],
+    "answer": "उपयोग करना"
+  },
+  {
+    "question": "Win",
+    "options": ["जीतना", "हारना", "उपयोग करना", "खेलना"],
+    "answer": "जीतना"
+  },
+  {
+    "question": "Lose",
+    "options": ["हारना", "जीतना", "खेलना", "सीखना"],
+    "answer": "हारना"
+  },
+  {
+    "question": "खाना",
+    "options": ["Eat", "Drink", "Sleep", "Go"],
+    "answer": "Eat"
+  },
+  {
+    "question": "पीना",
+    "options": ["Drink", "Speak", "Read", "See"],
+    "answer": "Drink"
+  },
+  {
+    "question": "सोना",
+    "options": ["Sleep", "Walk", "Run", "Sit"],
+    "answer": "Sleep"
+  },
+  {
+    "question": "जाना",
+    "options": ["Go", "Come", "Speak", "Hear"],
+    "answer": "Go"
+  },
+  {
+    "question": "आना",
+    "options": ["Come", "Eat", "Write", "See"],
+    "answer": "Come"
+  },
+  {
+    "question": "बोलना",
+    "options": ["Speak", "Read", "Hear", "Walk"],
+    "answer": "Speak"
+  },
+  {
+    "question": "पढ़ना",
+    "options": ["Read", "Write", "See", "Hear"],
+    "answer": "Read"
+  },
+  {
+    "question": "लिखना",
+    "options": ["Write", "Eat", "Drink", "Go"],
+    "answer": "Write"
+  },
+  {
+    "question": "देखना",
+    "options": ["See", "Hear", "Walk", "Run"],
+    "answer": "See"
+  },
+  {
+    "question": "सुनना",
+    "options": ["Hear", "Speak", "Read", "Write"],
+    "answer": "Hear"
+  },
+  {
+    "question": "चलना",
+    "options": ["Walk", "Run", "Sit", "Sleep"],
+    "answer": "Walk"
+  },
+  {
+    "question": "दौड़ना",
+    "options": ["Run", "Walk", "Sit", "Go"],
+    "answer": "Run"
+  },
+  {
+    "question": "बैठना",
+    "options": ["Sit", "Sleep", "Eat", "Drink"],
+    "answer": "Sit"
+  },
+  {
+    "question": "बचाना",
+    "options": ["Save", "Give", "Take", "Open"],
+    "answer": "Save"
+  },
+  {
+    "question": "सीखना",
+    "options": ["Learn", "Play", "Help", "Give"],
+    "answer": "Learn"
+  },
+  {
+    "question": "खेलना",
+    "options": ["Play", "Learn", "Save", "Take"],
+    "answer": "Play"
+  },
+  {
+    "question": "मदद करना",
+    "options": ["Help", "Open", "Close", "Buy"],
+    "answer": "Help"
+  },
+  {
+    "question": "देना",
+    "options": ["Give", "Take", "Eat", "Drink"],
+    "answer": "Give"
+  },
+  {
+    "question": "लेना",
+    "options": ["Take", "Give", "Sleep", "Go"],
+    "answer": "Take"
+  },
+  {
+    "question": "खोलना",
+    "options": ["Open", "Close", "Buy", "Sell"],
+    "answer": "Open"
+  },
+  {
+    "question": "बंद करना",
+    "options": ["Close", "Open", "Clean", "Wash"],
+    "answer": "Close"
+  },
+  {
+    "question": "खरीदना",
+    "options": ["Buy", "Sell", "Clean", "Help"],
+    "answer": "Buy"
+  },
+  {
+    "question": "बेचना",
+    "options": ["Sell", "Buy", "Open", "Close"],
+    "answer": "Sell"
+  },
+  {
+    "question": "साफ करना",
+    "options": ["Clean", "Wash", "Sing", "Cry"],
+    "answer": "Clean"
+  },
+  {
+    "question": "धोना",
+    "options": ["Wash", "Clean", "Play", "Learn"],
+    "answer": "Wash"
+  },
+  {
+    "question": "गाना",
+    "options": ["Sing", "Cry", "Laugh", "Smile"],
+    "answer": "Sing"
+  },
+  {
+    "question": "रोना",
+    "options": ["Cry", "Sing", "Laugh", "Think"],
+    "answer": "Cry"
+  },
+  {
+    "question": "हँसना",
+    "options": ["Laugh", "Smile", "Cry", "Sing"],
+    "answer": "Laugh"
+  },
+  {
+    "question": "मुस्कुराना",
+    "options": ["Smile", "Laugh", "Cry", "Think"],
+    "answer": "Smile"
+  },
+  {
+    "question": "सोचना",
+    "options": ["Think", "Forget", "Start", "Stop"],
+    "answer": "Think"
+  },
+  {
+    "question": "भूलना",
+    "options": ["Forget", "Think", "Catch", "Throw"],
+    "answer": "Forget"
+  },
+  {
+    "question": "शुरू करना",
+    "options": ["Start", "Stop", "Hide", "Find"],
+    "answer": "Start"
+  },
+  {
+    "question": "रोकना",
+    "options": ["Stop", "Start", "Catch", "Throw"],
+    "answer": "Stop"
+  },
+  {
+    "question": "पकड़ना",
+    "options": ["Catch", "Throw", "Hide", "Find"],
+    "answer": "Catch"
+  },
+  {
+    "question": "फेंकना",
+    "options": ["Throw", "Catch", "Use", "Win"],
+    "answer": "Throw"
+  },
+  {
+    "question": "छिपाना",
+    "options": ["Hide", "Find", "Stop", "Start"],
+    "answer": "Hide"
+  },
+  {
+    "question": "ढूंढना",
+    "options": ["Find", "Hide", "Catch", "Throw"],
+    "answer": "Find"
+  },
+  {
+    "question": "उपयोग करना",
+    "options": ["Use", "Win", "Lose", "Play"],
+    "answer": "Use"
+  },
+  {
+    "question": "जीतना",
+    "options": ["Win", "Lose", "Use", "Play"],
+    "answer": "Win"
+  },
+  {
+    "question": "हारना",
+    "options": ["Lose", "Win", "Play", "Learn"],
+    "answer": "Lose"
+  },
+  
+  
+  {
+    "question": "खाना",
+    "options": ["తినడం", "త్రాగడం", "నిద్రపోవడం", "వెళ్ళడం"],
+    "answer": "తినడం"
+  },
+  {
+    "question": "पीना",
+    "options": ["తినడం", "త్రాగడం", "మాట్లాడటం", "చదవడం"],
+    "answer": "త్రాగడం"
+  },
+  {
+    "question": "सोना",
+    "options": ["నిద్రపోవడం", "వెళ్ళడం", "రావడం", "చూడటం"],
+    "answer": "నిద్రపోవడం"
+  },
+  {
+    "question": "जाना",
+    "options": ["వెళ్ళడం", "రావడం", "నడవడం", "పరిగెత్తడం"],
+    "answer": "వెళ్ళడం"
+  },
+  {
+    "question": "आना",
+    "options": ["రావడం", "వెళ్ళడం", "మాట్లాడటం", "చదవడం"],
+    "answer": "రావడం"
+  },
+  {
+    "question": "बोलना",
+    "options": ["మాట్లాడటం", "చూడటం", "వినడం", "నడవడం"],
+    "answer": "మాట్లాడటం"
+  },
+  {
+    "question": "पढ़ना",
+    "options": ["చదవడం", "రాయడం", "చూడటం", "వినడం"],
+    "answer": "చదవడం"
+  },
+  {
+    "question": "लिखना",
+    "options": ["రాయడం", "చదవడం", "పాడటం", "నవ్వడం"],
+    "answer": "రాయడం"
+  },
+  {
+    "question": "देखना",
+    "options": ["చూడటం", "వినడం", "నడవడం", "కూర్చోవడం"],
+    "answer": "చూడటం"
+  },
+  {
+    "question": "सुनना",
+    "options": ["వినడం", "చూడటం", "మాట్లాడటం", "నవ్వడం"],
+    "answer": "వినడం"
+  },
+  {
+    "question": "चलना",
+    "options": ["నడవడం", "పరిగెత్తడం", "కూర్చోవడం", "వెళ్ళడం"],
+    "answer": "నడవడం"
+  },
+  {
+    "question": "दौड़ना",
+    "options": ["పరిగెత్తడం", "నడవడం", "కూర్చోవడం", "రావడం"],
+    "answer": "పరిగెత్తడం"
+  },
+  {
+    "question": "बैठना",
+    "options": ["కూర్చోవడం", "నడవడం", "పరిగెత్తడం", "చూడటం"],
+    "answer": "కూర్చోవడం"
+  },
+  {
+    "question": "बचाना",
+    "options": ["కాపాడటం", "సహాయం చేయడం", "ఇవ్వడం", "తీసుకోవడం"],
+    "answer": "కాపాడటం"
+  },
+  {
+    "question": "सीखना",
+    "options": ["నేర్చుకోవడం", "ఆడటం", "సహాయం చేయడం", "చదవడం"],
+    "answer": "నేర్చుకోవడం"
+  },
+  {
+    "question": "खेलना",
+    "options": ["ఆడటం", "నేర్చుకోవడం", "పాడటం", "నవ్వడం"],
+    "answer": "ఆడటం"
+  },
+  {
+    "question": "मदद करना",
+    "options": ["సహాయం చేయడం", "కాపాడటం", "ఇవ్వడం", "తీసుకోవడం"],
+    "answer": "సహాయం చేయడం"
+  },
+  {
+    "question": "देना",
+    "options": ["ఇవ్వడం", "తీసుకోవడం", "కొనడం", "అమ్మడం"],
+    "answer": "ఇవ్వడం"
+  },
+  {
+    "question": "लेना",
+    "options": ["తీసుకోవడం", "ఇవ్వడం", "కొనడం", "శుభ్రం చేయడం"],
+    "answer": "తీసుకోవడం"
+  },
+  {
+    "question": "खोलना",
+    "options": ["తెరవడం", "మూసివేయడం", "కొనడం", "అమ్మడం"],
+    "answer": "తెరవడం"
+  },
+  {
+    "question": "बंद करना",
+    "options": ["మూసివేయడం", "తెరవడం", "శుభ్రం చేయడం", "కడగడం"],
+    "answer": "మూసివేయడం"
+  },
+  {
+    "question": "खरीदना",
+    "options": ["కొనడం", "అమ్మడం", "ఇవ్వడం", "తీసుకోవడం"],
+    "answer": "కొనడం"
+  },
+  {
+    "question": "बेचना",
+    "options": ["అమ్మడం", "కొనడం", "తెరవడం", "మూసివేయడం"],
+    "answer": "అమ్మడం"
+  },
+  {
+    "question": "साफ करना",
+    "options": ["శుభ్రం చేయడం", "కడగడం", "పాడటం", "నవ్వడం"],
+    "answer": "శుభ్రం చేయడం"
+  },
+  {
+    "question": "धोना",
+    "options": ["ఉతకడం", "శుభ్రం చేయడం", "పాడటం", "ఏడవడం"],
+    "answer": "ఉతకడం"
+  },
+  {
+    "question": "गाना",
+    "options": ["పాడటం", "నవ్వడం", "ఏడవడం", "ఆలోచించడం"],
+    "answer": "పాడటం"
+  },
+  {
+    "question": "रोना",
+    "options": ["ఏడవడం", "నవ్వడం", "పాడటం", "మాట్లాడటం"],
+    "answer": "ఏడవడం"
+  },
+  {
+    "question": "हँसना",
+    "options": ["నవ్వడం", "ఏడవడం", "పాడటం", "పడిపోవడం"],
+    "answer": "నవ్వడం"
+  },
+  {
+    "question": "मुस्कुराना",
+    "options": ["చిరునవ్వు నవ్వడం", "నవ్వడం", "ఏడవడం", "పాడటం"],
+    "answer": "చిరునవ్వు నవ్వడం"
+  },
+  {
+    "question": "सोचना",
+    "options": ["ఆలోచించడం", "మర్చిపోవడం", "ప్రారంభించడం", "ఆపడం"],
+    "answer": "ఆలోచించడం"
+  },
+  {
+    "question": "भूलना",
+    "options": ["మర్చిపోవడం", "ఆలోచించడం", "ప్రారంభించడం", "వెతకడం"],
+    "answer": "మర్చిపోవడం"
+  },
+  {
+    "question": "शुरू करना",
+    "options": ["ప్రారంభించడం", "ఆపడం", "పట్టుకోవడం", "విసిరేయడం"],
+    "answer": "ప్రారంభించడం"
+  },
+  {
+    "question": "रोकना",
+    "options": ["ఆపడం", "ప్రారంభించడం", "వెతకడం", "దాచడం"],
+    "answer": "ఆపడం"
+  },
+  {
+    "question": "पकड़ना",
+    "options": ["పట్టుకోవడం", "విసిరేయడం", "దాచడం", "వెతకడం"],
+    "answer": "పట్టుకోవడం"
+  },
+  {
+    "question": "फेंकना",
+    "options": ["విసిరేయడం", "పట్టుకోవడం", "దాచడం", "ఉపయోగించడం"],
+    "answer": "విసిరేయడం"
+  },
+  {
+    "question": "छिपाना",
+    "options": ["దాచడం", "వెతకడం", "పట్టుకోవడం", "ఆపడం"],
+    "answer": "దాచడం"
+  },
+  {
+    "question": "ढूंढना",
+    "options": ["వెతకడం", "దాచడం", "పట్టుకోవడం", "ఉపయోగించడం"],
+    "answer": "వెతకడం"
+  },
+  {
+    "question": "उपयोग करना",
+    "options": ["ఉపయోగించడం", "వెతకడం", "దాచడం", "ప్రారంభించడం"],
+    "answer": "ఉపయోగించడం"
+  },
+  {
+    "question": "जीतना",
+    "options": ["గెలవడం", "ఓడిపోవడం", "ఆడటం", "సహాయం చేయడం"],
+    "answer": "గెలవడం"
+  },
+  {
+    "question": "हारना",
+    "options": ["ఓడిపోవడం", "గెలవడం", "పరిగెత్తడం", "నడవడం"],
+    "answer": "ఓడిపోవడం"
+  },
+  {
+    "question": "తినడం",
+    "options": ["खाना", "पीना", "सोना", "जाना"],
+    "answer": "खाना"
+  },
+  {
+    "question": "త్రాగడం",
+    "options": ["पीना", "खाना", "बोलना", "पढ़ना"],
+    "answer": "पीना"
+  },
+  {
+    "question": "నిద్రపోవడం",
+    "options": ["सोना", "जाना", "आना", "देखना"],
+    "answer": "सोना"
+  },
+  {
+    "question": "వెళ్ళడం",
+    "options": ["जाना", "आना", "चलना", "दौड़ना"],
+    "answer": "जाना"
+  },
+  {
+    "question": "రావడం",
+    "options": ["आना", "जाना", "बोलना", "पढ़ना"],
+    "answer": "आना"
+  },
+  {
+    "question": "మాట్లాడటం",
+    "options": ["बोलना", "देखना", "सुनना", "चलना"],
+    "answer": "बोलना"
+  },
+  {
+    "question": "చదవడం",
+    "options": ["पढ़ना", "लिखना", "देखना", "सुनना"],
+    "answer": "पढ़ना"
+  },
+  {
+    "question": "రాయడం",
+    "options": ["लिखना", "पढ़ना", "गाना", "हँसना"],
+    "answer": "लिखना"
+  },
+  {
+    "question": "చూడటం",
+    "options": ["देखना", "सुनना", "चलना", "बैठना"],
+    "answer": "देखना"
+  },
+  {
+    "question": "వినడం",
+    "options": ["सुनना", "देखना", "बोलना", "हँसना"],
+    "answer": "सुनना"
+  },
+  {
+    "question": "నడవడం",
+    "options": ["चलना", "दौड़ना", "बैठना", "जाना"],
+    "answer": "चलना"
+  },
+  {
+    "question": "పరిగెత్తడం",
+    "options": ["दौड़ना", "चलना", "बैठना", "आना"],
+    "answer": "दौड़ना"
+  },
+  {
+    "question": "కూర్చోవడం",
+    "options": ["बैठना", "चलना", "दौड़ना", "देखना"],
+    "answer": "बैठना"
+  },
+  {
+    "question": "కాపాడటం",
+    "options": ["बचाना", "मदद करना", "देना", "लेना"],
+    "answer": "बचाना"
+  },
+  {
+    "question": "నేర్చుకోవడం",
+    "options": ["सीखना", "खेलना", "मदद करना", "पढ़ना"],
+    "answer": "सीखना"
+  },
+  {
+    "question": "ఆడటం",
+    "options": ["खेलना", "सीखना", "गाना", "हँसना"],
+    "answer": "खेलना"
+  },
+  {
+    "question": "సహాయం చేయడం",
+    "options": ["मदद करना", "बचाना", "देना", "लेना"],
+    "answer": "मदद करना"
+  },
+  {
+    "question": "ఇవ్వడం",
+    "options": ["देना", "लेना", "खरीदना", "बेचना"],
+    "answer": "देना"
+  },
+  {
+    "question": "తీసుకోవడం",
+    "options": ["लेना", "देना", "खरीदना", "साफ करना"],
+    "answer": "लेना"
+  },
+  {
+    "question": "తెరవడం",
+    "options": ["खोलना", "बंद करना", "खरीदना", "बेचना"],
+    "answer": "खोलना"
+  },
+  {
+    "question": "మూసివేయడం",
+    "options": ["बंद करना", "खोलना", "साफ करना", "धोना"],
+    "answer": "बंद करना"
+  },
+  {
+    "question": "కొనడం",
+    "options": ["खरीदना", "बेचना", "देना", "लेना"],
+    "answer": "खरीदना"
+  },
+  {
+    "question": "అమ్మడం",
+    "options": ["बेचना", "खरीदना", "खोलना", "बंद करना"],
+    "answer": "बेचना"
+  },
+  {
+    "question": "శుభ్రం చేయడం",
+    "options": ["साफ करना", "धोना", "गाना", "हँसना"],
+    "answer": "साफ करना"
+  },
+  {
+    "question": "కడగడం",
+    "options": ["धोना", "साफ करना", "गाना", "रोना"],
+    "answer": "धोना"
+  },
+  {
+    "question": "పాడటం",
+    "options": ["गाना", "हँसना", "रोना", "सोचना"],
+    "answer": "गाना"
+  },
+  {
+    "question": "ఏడవడం",
+    "options": ["रोना", "हँसना", "गाना", "बोलना"],
+    "answer": "रोना"
+  },
+  {
+    "question": "నవ్వడం",
+    "options": ["हँसना", "रोना", "गाना", "मुस्कुराना"],
+    "answer": "हँसना"
+  },
+  {
+    "question": "చిరునవ్వు నవ్వడం",
+    "options": ["मुस्कुराना", "हँसना", "रोना", "गाना"],
+    "answer": "मुस्कुराना"
+  },
+  {
+    "question": "ఆలోచించడం",
+    "options": ["सोचना", "भूलना", "शुरू करना", "रोकना"],
+    "answer": "सोचना"
+  },
+  {
+    "question": "మర్చిపోవడం",
+    "options": ["भूलना", "सोचना", "शुरू करना", "ढूंढना"],
+    "answer": "भूलना"
+  },
+  {
+    "question": "ప్రారంభించడం",
+    "options": ["शुरू करना", "रोकना", "पकड़ना", "फेंकना"],
+    "answer": "शुरू करना"
+  },
+  {
+    "question": "ఆపడం",
+    "options": ["रोकना", "शुरू करना", "ढूंढना", "छिपाना"],
+    "answer": "रोकना"
+  },
+  {
+    "question": "పట్టుకోవడం",
+    "options": ["पकड़ना", "फेंकना", "छिपाना", "ढूंढना"],
+    "answer": "पकड़ना"
+  },
+  {
+    "question": "విసిరేయడం",
+    "options": ["फेंकना", "पकड़ना", "छिपाना", "उपयोग करना"],
+    "answer": "फेंकना"
+  },
+  {
+    "question": "దాచడం",
+    "options": ["छिपाना", "ढूंढना", "पकड़ना", "रोकना"],
+    "answer": "छिपाना"
+  },
+  {
+    "question": "వెతకడం",
+    "options": ["ढूंढना", "छिपाना", "पकड़ना", "उपयोग करना"],
+    "answer": "ढूंढना"
+  },
+  {
+    "question": "ఉపయోగించడం",
+    "options": ["उपयोग करना", "ढूंढना", "छिपाना", "शुरू करना"],
+    "answer": "उपयोग करना"
+  },
+  {
+    "question": "గెలవడం",
+    "options": ["जीतना", "हारना", "खेलना", "मदद करना"],
+    "answer": "जीतना"
+  },
+  {
+    "question": "ఓడిపోవడం",
+    "options": ["हारना", "जीतना", "दौड़ना", "चलना"],
+    "answer": "हारना"
+  }
+
+];
+/* ========================== */
+
+let remainingQuestions = [], score = 0, answered = 0, currentQuestionIndex = 0;
+let selectedQuestions = [], totalQuestions, timeLeft = totalTime, timerInterval;
+
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function getRandomQuestions(count) {
+    if (remainingQuestions.length < count) {
+        remainingQuestions = shuffleArray([...questions]);
+    }
+    const quizSet = remainingQuestions.slice(0, count);
+    remainingQuestions = remainingQuestions.slice(count);
+    return quizSet;
+}
+
+function getLimitedOptions(q) {
+    let wrongOptions = q.options.filter(o => o !== q.answer);
+    wrongOptions = shuffleArray(wrongOptions).slice(0, CHOICE_COUNT - 1);
+    return shuffleArray([q.answer, ...wrongOptions]);
+}
+
+function updateTimerDisplay() {
+    let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+    document.getElementById('timer').textContent =
+        `Time Left: ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function startTimer() {
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            showResult(true);
+        }
+    }, 1000);
+}
+
+function updateQuestionCounter() {
+    document.getElementById('question-counter').textContent =
+        `Question ${answered} of ${totalQuestions}`;
+}
+
+function updateProgress() {
+    document.getElementById('progress').style.width = `${(answered / totalQuestions) * 100}%`;
+}
+
+async function showQuestion(index) {
+    const quizDiv = document.getElementById('quiz');
+    if (index >= totalQuestions) {
+        if (quizDiv.firstChild) {
+            quizDiv.firstChild.classList.add('fade-slide-out');
+            await new Promise(r => setTimeout(r, 600));
+        }
+        showResult();
+        return;
+    }
+    if (quizDiv.firstChild) {
+        quizDiv.firstChild.classList.add('fade-slide-out');
+        await new Promise(r => setTimeout(r, 600));
+    }
+    quizDiv.innerHTML = '';
+    const q = selectedQuestions[index];
+    const questionDiv = document.createElement('div');
+    questionDiv.className = 'card-question fade-slide-in';
+    questionDiv.innerHTML = `<span class="q-num">Q${index + 1}.</span><span class="q-txt">${q.question}</span>`;
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'options';
+    getLimitedOptions(q).forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(btn, q.answer);
+        optionsDiv.appendChild(btn);
+    });
+    questionDiv.appendChild(optionsDiv);
+    quizDiv.appendChild(questionDiv);
+}
+
+function checkAnswer(button, correctAnswer) {
+    const buttons = button.parentElement.getElementsByTagName('button');
+    for (let btn of buttons) btn.disabled = true;
+    if (button.textContent === correctAnswer) {
+        button.classList.add('correct');
+        score++;
+    } else {
+        button.classList.add('wrong');
+        for (let btn of buttons) if (btn.textContent === correctAnswer) btn.classList.add('correct');
+    }
+    answered++;
+    updateQuestionCounter();
+    updateProgress();
+    setTimeout(() => { currentQuestionIndex++; showQuestion(currentQuestionIndex); }, 900);
+}
+
+function getFeedback(p) {
+    if (p >= 90) return "🌟 Excellent!";
+    else if (p >= 70) return "👍 Very good!";
+    else if (p >= 50) return "👌 Good!";
+    else return "💪 Keep trying!";
+}
+
+function showResult(timeout = false) {
+    clearInterval(timerInterval);
+    const quizDiv = document.getElementById('quiz'); quizDiv.innerHTML = '';
+    const perc = (score / totalQuestions) * 100, feedback = getFeedback(perc);
+    const elapsed = totalTime - timeLeft, m = Math.floor(elapsed / 60), s = elapsed % 60;
+    const resultDiv = document.getElementById('result'); resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `<h2>Your Result</h2>${timeout ? '<p>⏰ Time is up!</p>' : ''}
+    <p>${feedback}</p><p>Score: ${score}/${totalQuestions}</p>
+    <p>Percentage: ${perc.toFixed(1)}%</p>
+    <p>Time Taken: ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}</p>
+    <div style="margin-top:20px;">
+        <button onclick="retakeQuiz()" class="option-btn">🔄 Try Again</button>
+    </div>`;
+}
+
+function retakeQuiz() {
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('progress').style.width = '0';
+    createQuiz();
+}
+
+function createQuiz() {
+    selectedQuestions = getRandomQuestions(QUESTIONS_PER_GAME);
+    totalQuestions = selectedQuestions.length;
+    score = 0; answered = 0; currentQuestionIndex = 0; timeLeft = totalTime;
+    clearInterval(timerInterval);
+    startTimer();
+    showQuestion(currentQuestionIndex);
+    updateQuestionCounter();
+    updateProgress();
+}
+
+window.addEventListener("DOMContentLoaded", createQuiz);
+</script>
+</body>
+</html>
